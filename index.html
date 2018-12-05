@@ -433,6 +433,8 @@ body {
 	var pie = d3.layout.pie();
 	var color = ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c"]
 	var groupNames = ["Mileage", "Home", "1-799 Miles", "800-1599 Miles", "1600-2399 Miles", "2400-3199 Miles", "3200+ Miles"]
+	
+	var wltMap;
 		
 d3.queue()
 	.defer(d3.csv, "data/teamNames.csv")
@@ -931,13 +933,45 @@ function histMaker(){
 			.entries(filtSeason)
 			console.log(season_total_wlt)
 	
-	function rearrange(d){for (var i=0; i < season_total_wlt.length; i++) { 
+	for (var i=0; i < season_total_wlt.length; i++) { 
 		var team = season_total_wlt[i]; 
-		season_total_wlt.map = d3.map(season_total_wlt.values, function(d) { return d.key; }) 
-			} 
-		}
-	rearrange(season_total_wlt)
-			
+		team.map = d3.map(team.values, function(d) { return d.key; }) 
+			};
+			 
+	wltMap = d3.map(season_total_wlt, function(d){return d.key});
+	
+	var w = 0;
+	var l = 0;
+	var t = 0;
+	
+	
+	function wlt_convert(){for(key in wltMap["_"]){
+			if(wltMap.get(key).map.get("W") == undefined){
+				w = w + 0
+			}else{
+				w = w + wltMap.get(key).map.get("W").values;
+			}
+			if(wltMap.get(key).map.get("L") == undefined){
+				l = l + 0
+			}else{
+				l = l + wltMap.get(key).map.get("L").values;
+			}
+			if(wltMap.get(key).map.get("T") == undefined){
+				t = t + 0
+			}else{
+				t = t + wltMap.get(key).map.get("T").values;
+			}
+		console.log(w)
+		console.log(l)
+		console.log(t)
+	};
+	}
+		wlt_convert();
+		var pct = function(){if((w+0.5*t)/(w+l+t) == "undefined"){
+		return 0
+		}else{
+			return (w+0.5*t)/(w+l+t)}
+	}
 	//var season_total_win = season_total_wlt.key["W"]
 	//var season_total_loss = season_total_wlt[0].values[1].values
 	//var season_total_tie = season_total_wlt[0].values[2].values
@@ -947,5 +981,4 @@ function histMaker(){
 
 </body>
 </html>
-
 	
