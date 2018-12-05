@@ -1,0 +1,88 @@
+@charset "utf-8";
+
+html,
+body {
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 auto;
+	background-color: #ffffff;
+  font-family: "Open Sans", sans-serif !important;
+}
+
+.row {
+ height: calc(100% - 60px);
+}
+
+.navbar-brand {
+  font-size: 25px;
+}
+
+.chart{
+  height: 315px;
+}
+
+.modal h4 , .modal p{
+    float: left;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    color: #566270
+  }
+  .modal button {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+  }
+
+  .outlined {
+  outline-color: red;
+  outline-style: solid;
+  outline-width: 10px;
+  outline-offset: -10px;
+}
+
+/* Legend Position Style */
+.legend {
+	position:absolute;
+	left:15px;
+	top:20px;
+}
+.axis text {
+	font: 10px;
+}
+.line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+/*Choropleth map styling*/
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 150px;
+  height: 25px;
+  padding: 2px;
+  font-size: 10px;
+  background: #f4f4f4;
+  border: 1px;
+  box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, .2);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/*Bar Graph styling*/
+.bar13 {
+  fill: #FF831D
+}
+
+.bar14 {
+    fill: #038CE5;
+  }
+
+  .bar15 {
+      fill: #58B743;
+    }
+.bar16 {
+  fill: #9D0BCB;
+}
+
+
