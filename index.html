@@ -17,6 +17,7 @@
  <script src="js/d3_queue.js"></script>
  <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
  <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
  	  
  <style type="text/css">
 
@@ -26,17 +27,43 @@ path:hover {
 }
 
 /* Style for Custom Tooltip */
-div.tooltip {   
- 	position: absolute;           
-	text-align: center;           
-	width: 60px;                  
-	height: 28px;                 
-	padding: 2px;             
-	font: 12px sans-serif;        
-	background: white;   
-	border: 0px;      
-	border-radius: 8px;           
-	pointer-events: none;         
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }
         
 /* Legend Font Style */
@@ -141,7 +168,7 @@ body {
 <div class="container-fluid ">
   <div class="row" id="content" style="padding-top: 10px; padding-bottom: 40px; width: 100%;">
     <div class="col-sm-12 col-md-7">
-      <select style="float:left; margin-right:15px" id = "Teams" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange), addLines();">
+      <select style="float:left; margin-right:15px" id = "Teams" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange), addLines(), addTip(d), addTip2(),addLines()">
         <option value="ALL" selected>All Teams</option>
       </select>
       <select style="float:left; margin-right:15px" id="stat" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange)">
@@ -384,8 +411,21 @@ body {
 	</g>
 		
 	<g class="plot">
-	<line x1="925", y1="500", x2="1350", y2="500", stroke="black", stroke-width="1"></line>
+	<line x1="925", y1="500", x2="1410", y2="500", stroke="black", stroke-width="1"></line>
 	<line x1="925", y1="300", x2="925", y2="500", stroke="black", stroke-width="1"></line>
+	<line x1="965", y1="500", x2="965", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="952.5", y="520">Home</text>
+	<line x1="1040", y1="500", x2="1040", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="1025", y="520">1-799</text>
+	<line x1="1115", y1="500", x2="1115", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="1095", y="520">800-1599</text>
+	<line x1="1190", y1="500", x2="1190", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="1165", y="520">1600-2399</text>
+	<line x1="1265", y1="500", x2="1265", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="1235", y="520">2400-3199</text>
+	<line x1="1340", y1="500", x2="1340", y2="507", stroke="black", stroke-width="1"></line>
+	<text x="1320", y="520">3200+</text>
+	<text x= "1000", y="550" style="font-size: 16px">Distance Travelled in Miles</text>
 	</g>
 
 </svg>
@@ -421,6 +461,16 @@ body {
 	var wins = 0;
 	var losses = 0;
 	var ties = 0;
+	var w = 0;
+	var l = 0;
+	var t = 0;
+	var pct;
+	var dist_wltMap;
+	var dist_w = 0;
+	var dist_l = 0;
+	var dist_t = 0;
+	var dist_pct;
+	var dist_wltMap;
 						
 	var group0 = 0;
 	var group1 = 0;
@@ -480,6 +530,7 @@ extractionTool;
 				.entries(season);
 			createMenu();
 			createVis();
+			nester();
 		}
 	};
 	
@@ -591,14 +642,6 @@ extractionTool;
 					.attr("stroke-width", 1)
 					.attr("fill", "white")
 					.attr("style", "opacity: 0.95;")
-					.on("click", function(){
-						d3.selectAll(".teamtip").remove()
-						d3.selectAll(".tip-img").remove()
-						d3.selectAll(".tip-text").remove()
-						d3.selectAll(".tip-data").remove()
-						d3.selectAll(".guidecircle").remove()
-						d3.selectAll(".tip-pie").remove()
-						})
 					
 				d3.select("#nfl-map")
 					.append("image")
@@ -769,6 +812,7 @@ function filteredData(season, team1, team2, nest_dist, years, weeks, distances){
 			return newSeason;
 	})
 	filtSeason = newSeason;
+	nester();
 	
 	var newTeam1 = team1.filter(function(team1)
 	{ 
@@ -781,6 +825,8 @@ function filteredData(season, team1, team2, nest_dist, years, weeks, distances){
 			return newTeam1;
 	})
 	filtLoc1 = newTeam1;
+	nester();
+	
 	var newTeam2 = team2.filter(function(team2)
 	{ 
 		if((years[0] <= team2.Year && team2.Year <= years[1]) || (years[0] <= team2.Year_End && team2.Year_End <= years[1]) || (team2.Year == "ALL") && (team2.Abb == selectedValue || selectedValue == "ALL"))
@@ -792,6 +838,7 @@ function filteredData(season, team1, team2, nest_dist, years, weeks, distances){
 			return newTeam2;
 	})
 	filtLoc2 = newTeam2;
+	nester();
 	};
 	
 $(function sliderMaker1() {
@@ -916,22 +963,22 @@ function addLines(){
 										  }})
              	.attr("stroke-width", 2)
              	.attr("marker-end","url(#arrow)")
+				nester();
 				histMaker();
 		};
-
-function histMaker(){
+	
+function nester(){
+	//Block 1 - extracts the wins, losses, and ties from the filtered season data to be used to create selection overall winning percentage line in histogram
 	var season_total_games = d3.nest()
 			.key(function(d){return d.Team})
 			.rollup(function(d){return d.length})
-			.entries(filtSeason)
-			console.log(season_total_games)
+			.entries(filtSeason);
 		
 	var season_total_wlt = d3.nest()
 			.key(function(d){return d.Team})
 			.key(function(d){return d.WinLoss})
 			.rollup(function(leaves){return leaves.length})
-			.entries(filtSeason)
-			console.log(season_total_wlt)
+			.entries(filtSeason);
 	
 	for (var i=0; i < season_total_wlt.length; i++) { 
 		var team = season_total_wlt[i]; 
@@ -943,7 +990,6 @@ function histMaker(){
 	var w = 0;
 	var l = 0;
 	var t = 0;
-	
 	
 	function wlt_convert(){for(key in wltMap["_"]){
 			if(wltMap.get(key).map.get("W") == undefined){
@@ -961,24 +1007,152 @@ function histMaker(){
 			}else{
 				t = t + wltMap.get(key).map.get("T").values;
 			}
-		console.log(w)
-		console.log(l)
-		console.log(t)
 	};
 	}
 		wlt_convert();
-		var pct = function(){if((w+0.5*t)/(w+l+t) == "undefined"){
-		return 0
-		}else{
-			return (w+0.5*t)/(w+l+t)}
-	}
-	//var season_total_win = season_total_wlt.key["W"]
-	//var season_total_loss = season_total_wlt[0].values[1].values
-	//var season_total_tie = season_total_wlt[0].values[2].values
+		pct = Number((100*(w+t*0.5)/(w+l+t)).toFixed(2));
+		
+	//Block 2 - extracts the wins, losses, and ties by mileage range from filtered season data to be used to create selection overall winning percentage line in histogram
+	var nest_dist_games = d3.nest() //Used for accessing total number of games in each distance bin. 
+				.key(function(d) { return d.Distance_Bin; })
+				.rollup(function(leaves){return leaves.length})
+				.entries(filtSeason)
+				console.log(nest_dist_games);
+		
+	var season_dist_wlt = d3.nest() // Used for accessing win, loss, tie by distance bin.
+			.key(function(d){return d.Distance_Bin;})
+			.key(function(d){return d.WinLoss;})
+			.rollup(function(leaves){return leaves.length})
+			.entries(filtSeason)
+			console.log(season_dist_wlt);
+	
+	for (var i=0; i < season_dist_wlt.length; i++) { 
+		var team = season_dist_wlt[i]; 
+		team.map = d3.map(team.values, function(d) { return d.key; }) 
 			};
+			 
+	dist_wltMap = d3.map(season_dist_wlt, function(d){return d.key});
+	
+	function dist_wlt_convert(){for(key in dist_wltMap["_"]){
+			dist_w = 0;
+			dist_l = 0;
+			dist_t = 0;
+			if(dist_wltMap.get(key).map.get("W") == undefined){
+				dist_w = dist_w + 0
+			}else{
+				dist_w = dist_w + dist_wltMap.get(key).map.get("W").values;
+			}
+			if(dist_wltMap.get(key).map.get("L") == undefined){
+				dist_l = dist_l + 0
+			}else{
+				dist_l = dist_l + dist_wltMap.get(key).map.get("L").values;
+			}
+			if(dist_wltMap.get(key).map.get("T") == undefined){
+				dist_t = dist_t + 0
+			}else{
+				dist_t = dist_t + dist_wltMap.get(key).map.get("T").values;
+			}
+			dist_wltMap.get(key).map.set("PCT", (dist_w + 0.5*dist_t)/(dist_w + dist_l + dist_t).toFixed(4))
+	};
+	}
+		dist_wlt_convert();
+		dist_pct = Number((100*(w+t*0.5)/(w+l+t)).toFixed(2));
+	
+	};
+
+function histMaker(){
+	d3.selectAll(".hist").remove()
+	if(Stat1 == "WIN_PCT"){
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 930)
+				.attr("y", function(){
+					if(dist_wltMap.get("Home") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("Home").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("Home") == undefined){return 0}else{return 200 * (dist_wltMap.get("Home").map.get("PCT"))}})
+				.attr("fill", "#a6cee3")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 1005)
+				.attr("y", function(){
+					if(dist_wltMap.get("1-799") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("1-799").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("1-799") == undefined){return 0}else{return 200 * (dist_wltMap.get("1-799").map.get("PCT"))}})
+				.attr("fill", "#1f78b4")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 1080)
+				.attr("y", function(){
+					if(dist_wltMap.get("800-1599") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("800-1599").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("800-1599") == undefined){return 0}else{return 200 * (dist_wltMap.get("800-1599").map.get("PCT"))}})
+				.attr("fill", "#b2df8a")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 1155)
+				.attr("y", function(){
+					if(dist_wltMap.get("1600-2399") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("1600-2399").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("1600-2399") == undefined){return 0}else{return 200 * (dist_wltMap.get("1600-2399").map.get("PCT"))}})
+				.attr("fill", "#33a02c")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 1230)
+				.attr("y", function(){
+					if(dist_wltMap.get("2400-3199") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("2400-3199").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("2400-3199") == undefined){return 0}else{return 200 * (dist_wltMap.get("2400-3199").map.get("PCT"))}})
+				.attr("fill", "#fb9a99")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("rect")
+				.attr("class", "hist")
+				.attr("x", 1305)
+				.attr("y", function(){
+					if(dist_wltMap.get("3200+") == undefined){return 0}else{return 500 - (200 * dist_wltMap.get("3200+").map.get("PCT"))}})
+				.attr("width", 70)
+				.attr("height", function(){
+					if(dist_wltMap.get("3200+") == undefined){return 0}else{return 200 * (dist_wltMap.get("3200+").map.get("PCT"))}})
+				.attr("fill", "#e31a1c")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1)
+		d3.select("#nfl-map")//.selectAll("rect.hist").data(dist_wltMap).enter()
+				.append("line")
+				.attr("class", "hist")
+				.attr("x1", 925)
+				.attr("y1", function(){return 500 - (200 * (dist_pct/100))})
+				.attr("x2", 1410)
+				.attr("y2", function(){return 500 - (200 * (dist_pct/100))})
+				.attr("fill", "blue")
+				.attr("stroke", "black")
+				.attr("stroke-width", 2)
+				.attr("opacity", 0.75)
+		
+	}
+	};
 
 </script>
 
 </body>
 </html>
+
 	
