@@ -178,10 +178,10 @@ body {
 <div class="container-fluid ">
   <div class="row" id="content" style="padding-top: 10px; padding-bottom: 40px; width: 100%;">
     <div class="col-sm-12 col-md-7">
-      <select style="float:left; margin-right:15px" id = "Teams" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange), addLines(), addTip(d), addTip2(),addLines()">
+      <select style="float:left; margin-right:15px" id = "Teams" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange), addLines(), addTip(filtSeason), addTip2(),addLines()">
         <option value="ALL" selected>All Teams</option>
       </select>
-      <select style="float:left; margin-right:15px" id="stat" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange)">
+      <select style="float:left; margin-right:15px" id="stat" onChange="filteredData(seasonStats, teamLoc1, teamLoc2, yearRange, weekRange, distRange), addLines(), addTip(filtSeason), addTip2(),addLines()">
 		<option value="WIN_PCT">Winning Percentage</option>
 		<option value="PT_DIFF">Point Differential</option>
     	<option value="O_POINTS">Points</option>
